@@ -1,0 +1,55 @@
+version: '3.7'
+
+services:
+  # Flask application
+  webapp:
+    build:
+      context: ./app  # Your Flask app's Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ODOO_URL=http://odoo:8069
+      - PGADMIN_URL=http://pgadmin:80
+    depends_on:
+      - odoo
+      - pgadmin
+    networks:
+      - ic-group-network
+
+  # Odoo application (community edition)
+  odoo:
+    image: odoo:13.0
+    environment:
+      - HOST=odoo
+      - USER=admin
+      - PASSWORD=admin
+    ports:
+      - "8069:8069"
+    networks:
+      - ic-group-network
+
+  # pgAdmin application
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "80:80"
+    networks:
+      - ic-group-network
+
+  # Nginx to serve the static vitrine app
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./vitrine-app:/usr/share/nginx/html  # Mount the vitrine app to Nginx's public directory
+    ports:
+      - "8081:80"  # Expose the vitrine app on port 8081
+    networks:
+      - ic-group-network
+
+networks:
+  ic-group-network:
+    driver: bridge
+
