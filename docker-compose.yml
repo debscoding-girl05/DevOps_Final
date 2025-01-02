@@ -68,7 +68,7 @@ services:
   nginx:
     image: nginx:alpine
     volumes:
-      - ./app/vitrine-app:/usr/share/nginx/html  # Mount the vitrine app to Nginx's public directory
+      - ./app/vitrineApp:/usr/share/nginx/html  # Mount the vitrine app to Nginx's public directory
     ports:
       - "8081:80"  # Expose the vitrine app on port 8081
     networks:

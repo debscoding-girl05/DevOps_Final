@@ -21,4 +21,4 @@ ENV ODOO_URL=http://localhost:8069
 ENV PGADMIN_URL=http://localhost:8082
 
 # Run the Flask application
-ENTRYPOINT ["python", "/opt/vitrine-app/app.py"]
+ENTRYPOINT ["python", "/opt/vitrineApp/app.py"]
