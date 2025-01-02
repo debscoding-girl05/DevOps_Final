@@ -4,29 +4,53 @@ services:
   # Flask application
   webapp:
     build:
-      context: ./app  # Your Flask app's Dockerfile
+      context: ./app  # Path to your Flask app's Dockerfile
     ports:
-      - "8080:8080"
+      - "8085:8085"
     environment:
-      - ODOO_URL=http://odoo:8069
-      - PGADMIN_URL=http://pgadmin:80
+      - ODOO_URL=http://localhost:8069
+      - PGADMIN_URL=http://localhost:82
     depends_on:
       - odoo
       - pgadmin
+      - db
     networks:
       - ic-group-network
+    restart: always
 
   # Odoo application (community edition)
   odoo:
-    image: odoo:13.0
+    image: odoo:15.0  # Update to the desired Odoo version
     environment:
-      - HOST=odoo
-      - USER=admin
-      - PASSWORD=admin
+      - HOST=db
+      - USER=odoo
+      - PASSWORD=odoo
+      - DB_PORT=5432
+      - DB_NAME=postgres
+    depends_on:
+      - db
+    volumes:
+      - odoo-data:/var/lib/odoo  # Persist Odoo filestore
     ports:
       - "8069:8069"
     networks:
       - ic-group-network
+    restart: always
+
+  # PostgreSQL service
+  db:
+    image: postgres:15  # Update to the desired PostgreSQL version
+    environment:
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=odoo
+      - POSTGRES_DB=postgres
+    volumes:
+      - odoo-db:/var/lib/postgresql/data  # Persist PostgreSQL data 
+    networks:
+      - ic-group-network
+    ports:
+      - "5432:5432"
+    restart: always
 
   # pgAdmin application
   pgadmin:
@@ -35,21 +59,27 @@ services:
       - PGADMIN_DEFAULT_EMAIL=admin@admin.com
       - PGADMIN_DEFAULT_PASSWORD=admin
     ports:
-      - "80:80"
+      - "8082:80"
     networks:
       - ic-group-network
+    restart: always
 
   # Nginx to serve the static vitrine app
   nginx:
     image: nginx:alpine
     volumes:
-      - ./vitrine-app:/usr/share/nginx/html  # Mount the vitrine app to Nginx's public directory
+      - ./app/vitrine-app:/usr/share/nginx/html  # Mount the vitrine app to Nginx's public directory
     ports:
       - "8081:80"  # Expose the vitrine app on port 8081
     networks:
       - ic-group-network
+    restart: always
 
 networks:
   ic-group-network:
     driver: bridge
 
+volumes:
+  odoo-data:
+  odoo-db:
+  postgres_data:
